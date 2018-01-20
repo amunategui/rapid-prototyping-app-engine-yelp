@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF=8">
+	<title>Yelp Trip</title>
+</head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<body>
+<div class="container">
+	<h1>Plan Your Trip</h1>
+
+<FORM id='submit_params' method="POST" action="{{ url_for('get_information') }}">
+<div class="form-group">
+<table class="table">
+    <tr>
+        <td width="150px">Departure:</td>
+        <td width="150px">Destination:</td>
+        <td width="150px">Business of Interest:</td>
+    </tr>
+    <tr>
+        <td><input type="text" class="form-control" id="departure" placeholder="Enter start location" name="departure"></td>
+        <td><input type="text" class="form-control" id="destination" placeholder="Enter ending location" name="destination"></td>
+        <td><input type="text" class="form-control" id="searchitem" placeholder="Looking for what?" name="search_term"></td>
+    </tr>
+    <td><button class="btn btn-default" type="submit" style="width: 100px; height: 30px;">Map it!</button></td><td></td><td></td>
+    <tr>
+</table>
+</div>
+</form>
+
+</div>
+</body>
+</html>
