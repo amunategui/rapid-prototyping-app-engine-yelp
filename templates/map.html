@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF=8">
+	<title>Map It</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=ADD_YOUR_GOOGLE_MAPS_API_KEY_HERE"></script>
+
+
+	<script type="text/javascript">
+    var markers = [];
+    var locations = [{{init_points[0]|tojson}}];
+    var new_location = {{init_points[0]|tojson}}
+    var destination_coords = {{init_points[1]|tojson}};
+    var steps_remaining = {{steps_remaining}};
+    var search_term = "{{search_term}}";
+    var logger = '';
+
+    // global map object as it needs to be updated by Ajax calls
+    var map;
+	function initMap() {
+	    var myOptions = {
+	    zoom: 10,
+	    center: new google.maps.LatLng(0, 0),
+	    mapTypeId: google.maps.MapTypeId.ROADMAP
+	  }
+
+    map = new google.maps.Map(document.getElementById("map_plot"), myOptions);
+	  setMarkers(map);
+	}
+
+
+    function setMarkers(map) {
+        locations_tmp = locations
+        locations_tmp.push(destination_coords)
+    	var bounds = new google.maps.LatLngBounds();
+    	for (var i = 0; i < locations_tmp.length; i++) {
+
+    	    var location = locations_tmp[i];
+    	    var myLatLng = new google.maps.LatLng(location[1], location[2]);
+    	    var locationInfowindow = new google.maps.InfoWindow({
+    	      content: "<B>" + location[0] + "</B><BR>" + location[3] + "<BR>" + 'Rating: ' + location[4],
+    	    });
+
+    	    var marker = new google.maps.Marker({
+    	      position: {lat: location[1], lng: location[2]},
+    	      map: map,
+    	      title: location[0],
+    	      infowindow: locationInfowindow
+    	    });
+
+    	    markers.push(marker);
+
+    	    google.maps.event.addListener(marker, 'click', function() {
+    	      hideAllInfoWindows(map);
+    	      this.infowindow.open(map, this);
+    	    });
+    	    bounds.extend(myLatLng);
+    	  }
+    	  map.fitBounds(bounds);
+	}
+
+    function hideAllInfoWindows(map) {
+       markers.forEach(function(marker) {
+         marker.infowindow.close(map, marker);
+      });
+    }
+
+    var myTimer
+    $(document).ready(function(){
+        myTimer = setInterval(fetchdata,2000);
+        });
+
+    function fetchdata()
+    {
+        if (steps_remaining > 1) {
+        $.ajax({
+            type : "GET",
+            url:'{{ url_for('background_process') }}',
+            data:{ 'current_lat':new_location[1],
+            'current_lon':new_location[2] ,
+            'end_lat':{{init_points[1][1]|tojson}},
+            'end_lon':{{init_points[1][2]|tojson}},
+            'steps_remaining':steps_remaining,
+            'search_term':search_term},
+        success: function(data){
+            steps_remaining -= 1;
+            logger = data.next_coords + ',steps=' + steps_remaining + "<BR>" + logger
+            new_location = [data.next_coords[0], data.next_coords[1], data.next_coords[2], data.next_coords[3], data.next_coords[4]];
+            locations.push(new_location);
+            setMarkers(map);
+            }
+        });
+        } else {
+            logger = "Arrived!<BR>" + logger
+            clearInterval(myTimer);
+        }
+        $("#logger").html(logger);
+
+    }
+
+
+function doFunction() {
+    if (steps_remaining > 1) {
+        $.ajax({
+            type : "GET",
+            url:'{{ url_for('background_process') }}',
+            data:{ 'current_lat':new_location[1],
+            'current_lon':new_location[2] ,
+            'end_lat':{{init_points[1][1]|tojson}},
+            'end_lon':{{init_points[1][2]|tojson}},
+            'steps_remaining':steps_remaining,
+            'search_term':search_term},
+        success: function(data){
+            steps_remaining -= 1;
+            logger = data.next_coords + ',steps=' + steps_remaining + "<BR>" + logger
+            new_location = [data.next_coords[0], data.next_coords[1], data.next_coords[2], data.next_coords[3], data.next_coords[4]];
+            locations.push(new_location);
+            setMarkers(map);
+            }
+        });
+    } else {
+        logger = "Arrived!<BR>" + logger
+    }
+    $("#logger").html(logger);
+}
+
+
+</script>
+
+</head>
+
+<body onload="initMap()">
+<button id="btnaddmarker" onclick="doFunction();" >next point</button>
+<div class="container">
+	<h1>Traveling from {{departure}} to {{destination}} and within 50 miles of {{search_term}}</h1>
+	<div id='map_plot' style="width:100%; height:400px;"></div>
+	<BR>
+	<div id='logger'></div>
+</div>
+
+</body>
+</html>
