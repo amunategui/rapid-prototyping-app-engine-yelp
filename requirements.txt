@@ -1,0 +1,6 @@
+Flask==0.12.2
+Werkzeug<0.13.0,>=0.12.0
+gunicorn==19.7.1
+WTForms==2.1
+requests==2.18.4
+requests-toolbelt==0.8.0
